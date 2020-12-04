@@ -4,8 +4,16 @@ from matplotlib import style
 import mplfinance as mpf
 import matplotlib.dates as mdates
 import pandas as pd
-import pandas_datareader.data as web
-from mplfinance.original_flavor import volume_overlay
+import requests
+import pickle
+import bs4 as bs
+
+
+def save_sp500_tickers():
+    resp = requests.get('http://en.wikipedia.org/wiki/List_of_S%26P_500_companies')
+    soup = bs.BeautifulSoup(resp.text, 'lxml')
+    table = soup.find('table', {'class': 'wikitable sortable'})
+
 
 style.use('ggplot')
 
