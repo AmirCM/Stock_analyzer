@@ -1,3 +1,4 @@
+import json
 import datetime as dt
 import matplotlib.pyplot as plt
 from matplotlib import style
@@ -8,6 +9,8 @@ import requests
 import pickle
 import bs4 as bs
 import os
+import pandas as pd
+from alpha_vantage.timeseries import TimeSeries
 
 
 def save_sp500_tickers():
@@ -36,12 +39,11 @@ def get_data_from_yahoo(reload_sp500=False):
 
     start = dt.datetime(2010, 1, 1)
     end = dt.datetime.now()
+    ts = TimeSeries(key='TGESH0A2UGSNU4WB', output_format='pandas', indexing_type='date')
     for ticker in tickers[:10]:
         # just in case your connection breaks, we'd like to save our progress!
         if not os.path.exists('stock_dfs/{}.csv'.format(ticker)):
-            df = web.DataReader(ticker, 'morningstar', start, end)
-            df.reset_index(inplace=True)
-            df.set_index("Date", inplace=True)
+            df, _ = ts.get_daily(symbol=ticker, outputsize='full')
             df = df.drop("Symbol", axis=1)
             df.to_csv('stock_dfs/{}.csv'.format(ticker))
         else:
@@ -71,4 +73,31 @@ def compile_data():
     print(main_df.head())
     main_df.to_csv('sp500_joined_closes.csv')
 
+
+def visualize_data():
+    df = pd.read_csv('sp500_joined_closes.csv')
+    df['AAPL'].plot()
+    plt.show()
+
+
+API_URL = "https://www.alphavantage.co/query"
+symbol = 'MMM'
+
+data = {"function": "TIME_SERIES_DAILY",
+        "symbol": symbol,
+        "outputsize": "composite",
+        "datatype": "json",
+        "apikey": "TGESH0A2UGSNU4WB"}
+
+response = requests.get(API_URL, data)
+response_json = response.json()  # maybe redundant
+
+data = pd.DataFrame.from_dict(response_json['Time Series (Daily)'], orient='index').sort_index(axis=1)
+data = data.rename(columns={'1. open': 'Open', '2. high': 'High', '3. low': 'Low', '4. close': 'Close',
+                            '5. volume': 'Volume'})
+data = data[['Open', 'High', 'Low', 'Close', 'Volume']]
+print(data.tail())
+
+"""get_data_from_yahoo()
 compile_data()
+visualize_data()"""
