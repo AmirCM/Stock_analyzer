@@ -6,17 +6,18 @@ import time
 import mplfinance as mpf
 import sys
 import matplotlib.pyplot as plt
+from progress_bar import progress
 
 
-def progress(count, total, status=''):
-    bar_len = 60
-    filled_len = int(round(bar_len * count / float(total)))
+class Dataset:
+    def __init__(self, start: datetime.datetime, end: datetime.datetime, symbol):
+        self.start = start
+        self.end = end
+        self.symbol = symbol
+        print(self.start, self.end)
 
-    percents = round(100.0 * count / float(total), 1)
-    bar = '█' * filled_len + '-' * (bar_len - filled_len)
 
-    sys.stdout.write('[%s] %s%s ...%s\r' % (bar, percents, '%', status))
-    sys.stdout.flush()
+df_btc = Dataset(datetime.datetime(2020, 9, 10, 0, 0), datetime.datetime.now(), 'BTCUSD')
 
 
 def fetch_data(start, stop, symbol, interval=1):
